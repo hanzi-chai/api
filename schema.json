@@ -1,134 +1,62 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"$ref": "#/definitions/Glyph",
+	"$ref": "#/definitions/Character",
 	"definitions": {
-		"Glyph": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"component": {
+			"Character": {
 					"type": "object",
+					"additionalProperties": false,
 					"properties": {
-						"source": {
-							"type": "string"
-						},
-						"strokes": {
-							"type": "array",
-							"items": {
-								"anyOf": [
-									{
-										"type": "number"
-									},
-									{
-										"type": "object"
-									}
-								]
-							}
-						}
-					},
-					"required": ["strokes"],
-					"additionalProperties": false
-				},
-				"compound": {
-					"type": "array",
-					"items": {
-						"type": "object",
-						"properties": {
-							"operator": {
-								"type": "string"
+							"gb2312": {
+									"type": "boolean"
 							},
-							"operandList": {
-								"type": "array",
-								"items": {
-									"type": "string"
-								}
-							}
-						},
-						"required": ["operator", "operandList"],
-						"additionalProperties": false
-					}
-				},
-				"ambiguous": {
-					"type": "boolean"
-				},
-				"default_type": {
-					"type": "string",
-					"enum": ["component", "compound"]
-				},
-				"unicode": {
-					"type": "number"
-				},
-				"name": {
-					"type": ["string", "null"]
-				},
-				"gf0014_id": {
-					"type": ["number", "null"]
-				}
-			},
-			"required": ["ambiguous", "default_type", "gf0014_id", "name", "unicode"]
-		},
-
-		"NamedGlyph": {
-			"type": "object",
-			"properties": {
-				"name": {
-					"type": "string"
-				},
-				"gf0014_id": {
-					"type": ["number", "null"]
-				},
-				"component": {
-					"type": "object",
-					"properties": {
-						"source": {
-							"type": "string"
-						},
-						"strokes": {
-							"type": "array",
-							"items": {
-								"anyOf": [
-									{
-										"type": "number"
-									},
-									{
-										"type": "object"
+							"readings": {
+									"type": "array",
+									"items": {
+											"type": "string"
 									}
-								]
-							}
-						}
-					},
-					"required": ["strokes"],
-					"additionalProperties": false
-				},
-				"compound": {
-					"type": "array",
-					"items": {
-						"type": "object",
-						"properties": {
-							"operator": {
-								"type": "string"
 							},
-							"operandList": {
-								"type": "array",
-								"items": {
-									"type": "string"
-								}
+							"glyphs": {
+									"type": "array",
+									"items": {}
+							},
+							"ambiguous": {
+									"type": "boolean"
+							},
+							"unicode": {
+									"type": "number"
+							},
+							"tygf": {
+									"type": "number",
+									"enum": [
+											0,
+											1,
+											2,
+											3
+									]
+							},
+							"name": {
+									"type": [
+											"string",
+											"null"
+									]
+							},
+							"gf0014_id": {
+									"type": [
+											"number",
+											"null"
+									]
 							}
-						},
-						"required": ["operator", "operandList"],
-						"additionalProperties": false
-					}
-				},
-				"ambiguous": {
-					"type": "boolean"
-				},
-				"default_type": {
-					"type": "string",
-					"enum": ["component", "compound"]
-				}
-			},
-			"required": ["ambiguous", "default_type", "gf0014_id", "name"],
-			"additionalProperties": false
-		}
+					},
+					"required": [
+							"ambiguous",
+							"gb2312",
+							"gf0014_id",
+							"glyphs",
+							"name",
+							"readings",
+							"tygf",
+							"unicode"
+					]
+			}
 	}
 }

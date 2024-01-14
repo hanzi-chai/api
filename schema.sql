@@ -1,18 +1,12 @@
 CREATE TABLE IF NOT EXISTS repertoire (
 	unicode INTEGER PRIMARY KEY,
-	tygf INTEGER,
-	gb2312 INTEGER,
-	pinyin TEXT
-);
-
-CREATE TABLE IF NOT EXISTS form (
-	unicode INTEGER PRIMARY KEY,
+	tygf INTEGER NOT NULL,
+	gb2312 INTEGER NOT NULL,
+	readings TEXT NOT NULL,
+	glyphs TEXT NOT NULL,
 	name TEXT,
-	default_type INTEGER,
 	gf0014_id INTEGER,
-	component TEXT,
-	compound TEXT,
-	ambiguous INTEGER
+	ambiguous INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -26,3 +20,4 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_name ON repertoire(name);
