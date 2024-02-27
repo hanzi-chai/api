@@ -27,14 +27,14 @@ const router = Router()
 export default {
 	async fetch(request: Request, env: Env, ctx: Ctx): Promise<Response> {
 		// 附加 Response Headers
-		ctx.extraHeaders = [];
+		ctx.extraHeaders = new Headers();
 
 		return await router
 			.handle(request, env, ctx)
 			.then(json)
 			.then((response) => {
 				// 注入附加响应头
-				for (let [key, value] of ctx.extraHeaders) {
+				for (let [key, value] of ctx.extraHeaders.entries()) {
 					response.headers.set(key, value);
 				}
 				return response;

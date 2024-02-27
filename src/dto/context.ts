@@ -13,10 +13,8 @@ export interface Env {
  * 参见 [Fetch Handler](https://developers.cloudflare.com/workers/runtime-apis/handlers/fetch/)
  * UserId: 当前用户 ID, 由鉴权中间件注入
  */
-export interface Ctx {
+export interface Ctx extends ExecutionContext {
 	UserId: string;
 	unicode: number;
-	extraHeaders: [string, string][];
-	waitUntil<T>(promise: Promise<T>): void;
-	passThroughOnException(): void;
+	extraHeaders: Headers;
 }

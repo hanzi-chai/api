@@ -34,7 +34,7 @@ export async function authorizedUser(request: IRequest, env: Env, ctx: Ctx): Pro
 	if (claims.needRefresh()) {
 		// 将新的 token 写入到 NewToken 响应头
 		const newToken = await claims.sign(env);
-		ctx.extraHeaders.push(['New-Token', newToken]);
+		ctx.extraHeaders.set('New-Token', newToken);
 	}
 
 	return;
