@@ -16,10 +16,32 @@ interface CharacterModel {
 // 2. 用数字表示的改成了更易懂的 boolean 或枚举类型
 // 未定义的字形表示方法用 undefined 来表示
 
-type Character = Omit<CharacterModel, 'gb2312' | 'readings' | 'glyphs' | 'ambiguous'> & {
+interface Reading {
+  pinyin: string;
+  importance?: number;
+}
+
+interface Block {
+  index: number;
+  strokes: number;
+}
+
+interface Compound {
+  type: "compound";
+  operator: Operator;
+  operandList: string[];
+  tags?: string[];
+  order?: Block[];
+}
+
+interface Character {
+	unicode: number;
+	tygf: 0 | 1 | 2 | 3;
 	gb2312: boolean;
-	readings: string[];
-	glyphs: any[];
+	name: string | null;
+	gf0014_id: number | null;
+	readings: Reading[];
+	glyphs: Compound[];
 	ambiguous: boolean;
 };
 
