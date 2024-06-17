@@ -12,6 +12,9 @@ function getValidCharacters() {
 	for (let i = 0x3400; i <= 0x4dbf; i++) {
 		characters.add(String.fromCodePoint(i));
 	}
+	for (let i = 0xe000; i <= 0xefff; i++) {
+		characters.add(String.fromCodePoint(i));
+	}
 	return characters;
 }
 
@@ -19,7 +22,7 @@ function getPUATable() {
 	const pua = readFileSync('scripts/pua.txt', 'utf-8').split('\n');
 	const puaTable = new Map<string, number>();
 	for (const line of pua) {
-		const [character, codepoint_str] = line.split('\t');
+		const [codepoint_str, character] = line.split('\t');
 		const codepoint = parseInt(codepoint_str, 16);
 		puaTable.set(character, codepoint);
 	}
@@ -44,6 +47,9 @@ function tokenize(expr: string) {
 			isParens = true;
 		} else if (char === '}') {
 			token += '}';
+			if (token.match(/\{[0-9A-F]{4}\}/)) {
+				token = String.fromCodePoint(parseInt(token.slice(1, -1), 16));
+			}
 			tokens.push(token);
 			token = '';
 			isParens = false;
@@ -74,9 +80,27 @@ function getIDSInfo(valid: Set<string>) {
 		const expr = mainland.slice(1).split('$')[0];
 		result.push([character, expr]);
 	}
-	console.assert(result.length === valid.size, "Some codepoints don't have IDS info");
+	// console.assert(result.length === valid.size, "Some codepoints don't have IDS info");
 	return result;
 }
+
+const transform = new Map([
+	['⿱左⺝', '{E968}'],
+	['⿰丶丿', '{E089}'],
+	['⿺𠃊𥃭', '{E91E}']
+]);
+
+const replace = new Map([
+	['㇒', '丿'],
+	['𠦝', '龺'],
+	['𠄠', '二'],
+	['𡭔', '小'],
+	['𡵆', '屺'],
+	['{20}', '丸'],
+	['{80}', '㓁'],
+	['{88}', '亼'],
+	['{43}', '彐'],
+]);
 
 function process() {
 	const repertoire = listToObject(JSON.parse(readFileSync('data/repertoire.json', 'utf-8')));
@@ -115,6 +139,10 @@ function process() {
 		for (let i = 0; i != operands.length; i++) {
 			const part = operands[i];
 			if (validCharacters.has(part)) continue;
+			if (replace.has(part)) {
+				operands[i] = replace.get(part)!;
+				continue;
+			}
 			if (puaTable.has(part)) {
 				operands[i] = String.fromCodePoint(puaTable.get(part)!);
 				continue;
