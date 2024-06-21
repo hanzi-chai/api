@@ -29,13 +29,6 @@ function getPUATable() {
 	return puaTable;
 }
 
-function getPatch() {
-	const data = readFileSync('scripts/patch.txt', 'utf-8')
-		.split('\n')
-		.map((x) => x.split('\t') as [string, string]);
-	return new Map(data);
-}
-
 function tokenize(expr: string) {
 	const chars = [...expr];
 	const tokens: string[] = [];
@@ -66,29 +59,29 @@ function tokenize(expr: string) {
 
 function getIDSInfo(valid: Set<string>) {
 	const data = readFileSync('data/ids.txt', 'utf-8').split('\n');
-	const result: [string, string][] = [];
+	const patch = readFileSync('scripts/patch.txt', 'utf-8')
+		.trim()
+		.split('\n')
+		.map((x) => x.split('\t')) as [string, string][];
+	const result: [string, string[]][] = [];
 	for (const line of data) {
 		if (!line || line.startsWith('#')) continue;
 		const [codepoint_str, character, ...ids] = line.split('\t');
-		if (!ids?.length) continue;
+		if (!ids.length) continue;
 		const codepoint = parseInt(codepoint_str.slice(2), 16);
 		console.assert(String.fromCodePoint(codepoint) === character, character);
 		if (!valid.has(character)) continue;
 		let mainland = ids.find((x) => x.includes('G'));
 		if (!mainland) mainland = ids[0];
 		console.assert(mainland, character);
-		const expr = mainland.slice(1).split('$')[0];
-		result.push([character, expr]);
+		let expr = mainland.slice(1).split('$')[0];
+		for (const [from, to] of patch) {
+			expr = expr.replace(new RegExp(from), to);
+		}
+		result.push([character, tokenize(expr)]);
 	}
-	// console.assert(result.length === valid.size, "Some codepoints don't have IDS info");
 	return result;
 }
-
-const transform = new Map([
-	['⿱左⺝', '{E968}'],
-	['⿰丶丿', '{E089}'],
-	['⿺𠃊𥃭', '{E91E}']
-]);
 
 const replace = new Map([
 	['㇒', '丿'],
@@ -96,10 +89,12 @@ const replace = new Map([
 	['𠄠', '二'],
 	['𡭔', '小'],
 	['𡵆', '屺'],
+	['𦔮', '耴'],
 	['{20}', '丸'],
 	['{80}', '㓁'],
 	['{88}', '亼'],
 	['{43}', '彐'],
+	['𫜹', '彐'],
 ]);
 
 function process() {
@@ -107,32 +102,25 @@ function process() {
 	const validCharacters = getValidCharacters();
 	const idsInfo = getIDSInfo(validCharacters);
 	const puaTable = getPUATable();
-	const patch = getPatch();
 
 	const unary = '〾';
 	const binary = '⿰⿱⿴⿵⿶⿷⿸⿹⿺⿻⿼⿽';
 	const ternary = '⿲⿳';
-	const idc = Array.from(unary + binary + ternary);
-	const unknownCharacters = new Set<string>();
-	const badIDS: [string, string][] = [];
+	const badIDS: [string, string[]][] = [];
 	let count = 0;
 	let success = 0;
 
 	const newRepertoire: Character[] = [];
-	for (let [character, expr] of idsInfo) {
+	for (const [character, tokens] of idsInfo) {
 		if (repertoire[character]) continue; // well-known characters
 		count++;
-		if (patch.has(character)) {
-			expr = patch.get(character)!;
-		}
-		const tokens = tokenize(expr);
 		const operator = tokens[0];
 		const operands = tokens.slice(1);
-		if (tokens.length === 3 && binary.includes(tokens[0])) {
-		} else if (tokens.length === 4 && ternary.includes(tokens[0])) {
+		if (binary.includes(operator) && operands.length === 2) {
+		} else if (ternary.includes(operator) && operands.length === 3) {
 		} else {
 			// invalid
-			badIDS.push([character, expr]);
+			badIDS.push([character, tokens]);
 			continue;
 		}
 		let allKnown = true;
@@ -147,8 +135,9 @@ function process() {
 				operands[i] = String.fromCodePoint(puaTable.get(part)!);
 				continue;
 			}
-			unknownCharacters.add(part);
+			badIDS.push([character, tokens]);
 			allKnown = false;
+			break;
 		}
 		if (!allKnown) continue;
 		newRepertoire.push({
@@ -171,8 +160,7 @@ function process() {
 	}
 
 	writeFileSync('data/new-repertoire.json', JSON.stringify(newRepertoire, null, 2));
-	writeFileSync('data/extra-chars.txt', [...unknownCharacters].sort().join('\n'));
-	writeFileSync('data/bad-ids.txt', badIDS.map(([character, expr]) => `${character}\t${expr}`).join('\n'));
+	writeFileSync('data/bad-ids.txt', badIDS.map(([character, tokens]) => `${character}\t${tokens.join('')}`).join('\n'));
 	console.log(`Total: ${count}, Success: ${success}`);
 }
 
