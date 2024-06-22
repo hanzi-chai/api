@@ -18,7 +18,7 @@ interface CharacterModel {
 
 interface Reading {
   pinyin: string;
-  importance?: number;
+  importance: number;
 }
 
 interface Block {

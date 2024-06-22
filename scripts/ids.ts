@@ -1,8 +1,5 @@
 import { readFileSync, writeFileSync } from 'fs';
-
-function listToObject<T extends { unicode: number }>(list: T[]) {
-	return Object.fromEntries(list.map((x) => [String.fromCodePoint(x.unicode), x]));
-}
+import { listToObject, update } from './utils';
 
 function getValidCharacters() {
 	const characters = new Set<string>();
@@ -76,7 +73,7 @@ function getIDSInfo(valid: Set<string>) {
 		console.assert(mainland, character);
 		let expr = mainland.slice(1).split('$')[0];
 		for (const [from, to] of patch) {
-			expr = expr.replace(new RegExp(from), to);
+			expr = expr.replaceAll(new RegExp(from, 'g'), to);
 		}
 		result.push([character, tokenize(expr)]);
 	}
@@ -103,8 +100,7 @@ function process() {
 	const idsInfo = getIDSInfo(validCharacters);
 	const puaTable = getPUATable();
 
-	const unary = '〾';
-	const binary = '⿰⿱⿴⿵⿶⿷⿸⿹⿺⿻⿼⿽';
+	const binary = '⿰⿱⿴⿵⿶⿷⿸⿹⿺⿻';
 	const ternary = '⿲⿳';
 	const badIDS: [string, string[]][] = [];
 	let count = 0;
@@ -140,6 +136,17 @@ function process() {
 			break;
 		}
 		if (!allKnown) continue;
+		const glyph: Compound = {
+			type: 'compound',
+			operator: operator,
+			operandList: operands,
+		};
+		if (operator === '⿺' && '辶廴夨'.includes(operands[0])) {
+			glyph.order = [
+				{ index: 1, strokes: 0 },
+				{ index: 0, strokes: 0 },
+			];
+		}
 		newRepertoire.push({
 			unicode: character.codePointAt(0) as number,
 			readings: [],
@@ -148,13 +155,7 @@ function process() {
 			gf0014_id: null,
 			gb2312: false,
 			ambiguous: false,
-			glyphs: [
-				{
-					type: 'compound',
-					operator: operator,
-					operandList: operands,
-				},
-			],
+			glyphs: [glyph],
 		});
 		success++;
 	}
@@ -162,6 +163,11 @@ function process() {
 	writeFileSync('data/new-repertoire.json', JSON.stringify(newRepertoire, null, 2));
 	writeFileSync('data/bad-ids.txt', badIDS.map(([character, tokens]) => `${character}\t${tokens.join('')}`).join('\n'));
 	console.log(`Total: ${count}, Success: ${success}`);
+
+	if (count === success) {
+		console.log('All characters are successfully processed.');
+		update(newRepertoire);
+	}
 }
 
 process();
