@@ -9,6 +9,7 @@ export const routerRepertoire = Router({ base: '/repertoire' })
 	.post('/', authorizedUser, authorizedAdmin, repertoire.CreatePUA)
 	.post('/batch', authorizedUser, authorizedAdmin, repertoire.CreateBatch)
 	.post('/:unicode', authorizedUser, authorizedAdmin, repertoire.validateUnicode, repertoire.checkNotExist, repertoire.Create)
-	.put('/:unicode', authorizedUser, authorizedAdmin, repertoire.validateUnicode, repertoire.checkExist, repertoire.Update)
 	.put('/', authorizedUser, authorizedAdmin, repertoire.Mutate)
+	.put('/batch', authorizedUser, authorizedAdmin, repertoire.UpdateBatch)
+	.put('/:unicode', authorizedUser, authorizedAdmin, repertoire.validateUnicode, repertoire.checkExist, repertoire.Update)
 	.delete('/:unicode', authorizedUser, authorizedAdmin, repertoire.validateUnicode, repertoire.Delete);

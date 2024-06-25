@@ -203,6 +203,12 @@ export async function Update(request: IRequest, env: Env): Promise<Result<boolea
 	return await Model.update(env, toModel(glyph as Character));
 }
 
+/** POST:/repertoire/batch */
+export async function UpdateBatch(request: IRequest, env: Env): Promise<Result<boolean>> {
+	let glyph: Character[] = await request.json();
+	return await Model.updateBatch(env, glyph.map(toModel));
+}
+
 /** PATCH:/repertoire/:unicode */
 export async function Mutate(request: IRequest, env: Env, ctx: Ctx): Promise<Result<boolean>> {
 	// 请求参数

@@ -10,7 +10,6 @@ export class Model {
 		try {
 			res = await env.CHAI.prepare(`SELECT * FROM ${table} WHERE unicode=? LIMIT 1`).bind(unicode).first();
 		} catch (err) {
-			console.warn({ message: (err as Error).message });
 			return new Err(ErrCode.DataQueryFailed, '数据查询失败');
 		}
 
@@ -77,7 +76,6 @@ export class Model {
 		try {
 			res = await env.CHAI.prepare(`SELECT * FROM ${table} LIMIT ? OFFSET ?`).bind(limit, offset).all();
 		} catch (err) {
-			console.warn({ message: (err as Error).message });
 			return new Err(ErrCode.DataQueryFailed, '数据查询失败');
 		}
 
@@ -100,7 +98,6 @@ export class Model {
 	}
 
 	public static async createBatch(env: Env, characters: CharacterModel[]): Promise<Result<boolean>> {
-		console.warn(characters);
 		try {
 			const statement = env.CHAI.prepare(
 				`INSERT INTO ${table} (unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -128,18 +125,27 @@ export class Model {
 
 	public static async update(env: Env, character: CharacterModel): Promise<Result<boolean>> {
 		try {
+			const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous } = character;
 			await env.CHAI.prepare(`UPDATE ${table} SET tygf=?, gb2312=?, readings=?, glyphs=?, name=?, gf0014_id=?, ambiguous=? WHERE unicode=?`)
-				.bind(
-					character.tygf,
-					character.gb2312,
-					character.readings,
-					character.glyphs,
-					character.name,
-					character.gf0014_id,
-					character.ambiguous,
-					character.unicode,
-				)
+				.bind(tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous, unicode)
 				.run();
+		} catch (err) {
+			return new Err(ErrCode.DataUpdateFailed, `数据更新失败（${(err as Error).message}）`);
+		}
+		return true;
+	}
+
+	public static async updateBatch(env: Env, characters: CharacterModel[]): Promise<Result<boolean>> {
+		try {
+			const statement = env.CHAI.prepare(
+				`UPDATE ${table} SET tygf=?, gb2312=?, readings=?, glyphs=?, name=?, gf0014_id=?, ambiguous=? WHERE unicode=?`,
+			);
+			await env.CHAI.batch(
+				characters.map((character) => {
+					const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous } = character;
+					return statement.bind(tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous, unicode);
+				}),
+			);
 		} catch (err) {
 			return new Err(ErrCode.DataUpdateFailed, `数据更新失败（${(err as Error).message}）`);
 		}

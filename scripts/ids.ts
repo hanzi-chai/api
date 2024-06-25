@@ -3,14 +3,28 @@ import { listToObject, update } from './utils';
 
 function getValidCharacters() {
 	const characters = new Set<string>();
-	for (let i = 0x4e00; i <= 0x9fff; i++) {
-		characters.add(String.fromCodePoint(i));
-	}
-	for (let i = 0x3400; i <= 0x4dbf; i++) {
-		characters.add(String.fromCodePoint(i));
-	}
-	for (let i = 0xe000; i <= 0xefff; i++) {
-		characters.add(String.fromCodePoint(i));
+	const ranges: [number, number][] = [
+		[0x4e00, 0x9fff], // CJK Unified Ideographs
+		[0x3400, 0x4dbf], // CJK Extension A
+		[0x20000, 0x2a6df], // CJK Extension B
+		[0x2a700, 0x2b73f], // CJK Extension C
+		[0x2b740, 0x2b81f], // CJK Extension D
+		[0x2b820, 0x2ceaf], // CJK Extension E
+		[0x2ceb0, 0x2ebef], // CJK Extension F
+		[0x30000, 0x3134f], // CJK Extension G
+		[0x31350, 0x323af], // CJK Extension H
+		[0x2ebf0, 0x2ee5f], // CJK Extension I
+		[0xf900, 0xfaff], // CJK Compatibility Ideographs
+		[0x2f00, 0x2fdf], // Kangxi Radicals
+		[0x31c0, 0x31ef], // CJK Strokes
+		[0x2e80, 0x2eff], // CJK Radicals Supplement
+		[0x2f00, 0x2fdf], // Kangxi Radicals
+		[0xe000, 0xefff], // PUA
+	];
+	for (const [start, end] of ranges) {
+		for (let i = start; i <= end; i++) {
+			characters.add(String.fromCodePoint(i));
+		}
 	}
 	return characters;
 }
