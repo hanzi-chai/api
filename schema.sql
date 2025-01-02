@@ -19,5 +19,12 @@ CREATE TABLE IF NOT EXISTS users (
 	`state` INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS equivalence (
+	`id` INTEGER PRIMARY KEY AUTOINCREMENT,
+	`user` TEXT NOT NULL,
+	`model` TEXT NOT NULL,
+	`data` TEXT NOT NULL
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_name ON repertoire(name);
