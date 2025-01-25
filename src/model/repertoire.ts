@@ -84,12 +84,12 @@ export class Model {
 	}
 
 	public static async create(env: Env, character: CharacterModel): Promise<Result<number>> {
-		const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous } = character;
+		const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous } = character;
 		try {
 			await env.CHAI.prepare(
-				`INSERT INTO ${table} (unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+				`INSERT INTO ${table} (unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
-				.bind(unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous)
+				.bind(unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous)
 				.run();
 		} catch (err) {
 			return new Err(ErrCode.DataCreateFailed, `数据创建失败（${(err as Error).message}）`);
@@ -100,12 +100,12 @@ export class Model {
 	public static async createBatch(env: Env, characters: CharacterModel[]): Promise<Result<boolean>> {
 		try {
 			const statement = env.CHAI.prepare(
-				`INSERT INTO ${table} (unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+				`INSERT INTO ${table} (unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			);
 			await env.CHAI.batch(
 				characters.map((character) => {
-					const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous } = character;
-					return statement.bind(unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous);
+					const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous } = character;
+					return statement.bind(unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous);
 				}),
 			);
 		} catch (err) {
@@ -125,9 +125,9 @@ export class Model {
 
 	public static async update(env: Env, character: CharacterModel): Promise<Result<boolean>> {
 		try {
-			const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous } = character;
-			await env.CHAI.prepare(`UPDATE ${table} SET tygf=?, gb2312=?, readings=?, glyphs=?, name=?, gf0014_id=?, ambiguous=? WHERE unicode=?`)
-				.bind(tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous, unicode)
+			const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous } = character;
+			await env.CHAI.prepare(`UPDATE ${table} SET tygf=?, gb2312=?, readings=?, glyphs=?, name=?, gf0014_id=?, gf3001_id=?, ambiguous=? WHERE unicode=?`)
+				.bind(tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous, unicode)
 				.run();
 		} catch (err) {
 			return new Err(ErrCode.DataUpdateFailed, `数据更新失败（${(err as Error).message}）`);
@@ -138,12 +138,12 @@ export class Model {
 	public static async updateBatch(env: Env, characters: CharacterModel[]): Promise<Result<boolean>> {
 		try {
 			const statement = env.CHAI.prepare(
-				`UPDATE ${table} SET tygf=?, gb2312=?, readings=?, glyphs=?, name=?, gf0014_id=?, ambiguous=? WHERE unicode=?`,
+				`UPDATE ${table} SET tygf=?, gb2312=?, readings=?, glyphs=?, name=?, gf0014_id=?, gf3001_id=?, ambiguous=? WHERE unicode=?`,
 			);
 			await env.CHAI.batch(
 				characters.map((character) => {
-					const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous } = character;
-					return statement.bind(tygf, gb2312, readings, glyphs, name, gf0014_id, ambiguous, unicode);
+					const { unicode, tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous } = character;
+					return statement.bind(tygf, gb2312, readings, glyphs, name, gf0014_id, gf3001_id, ambiguous, unicode);
 				}),
 			);
 		} catch (err) {

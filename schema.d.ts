@@ -8,6 +8,7 @@ interface CharacterModel {
 	glyphs: string;
 	name: string | null;
 	gf0014_id: number | null;
+	gf3001_id: number | null;
 	ambiguous: 0 | 1;
 }
 
@@ -40,6 +41,7 @@ interface Character {
 	gb2312: boolean;
 	name: string | null;
 	gf0014_id: number | null;
+	gf3001_id: number | null;
 	readings: Reading[];
 	glyphs: Compound[];
 	ambiguous: boolean;

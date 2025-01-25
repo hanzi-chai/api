@@ -167,6 +167,7 @@ function process() {
 			tygf: 0,
 			name: null,
 			gf0014_id: null,
+			gf3001_id: null,
 			gb2312: false,
 			ambiguous: false,
 			glyphs: [glyph],

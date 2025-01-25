@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS repertoire (
 	glyphs TEXT NOT NULL,
 	name TEXT,
 	gf0014_id INTEGER,
+	gf3001_id INTEGER,
 	ambiguous INTEGER NOT NULL
 );
 

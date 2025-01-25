@@ -171,6 +171,7 @@ export async function CreatePUA(request: IRequest, env: Env): Promise<Result<num
 		glyphs: '[]',
 		name: glyph.name,
 		gf0014_id: null,
+		gf3001_id: null,
 		ambiguous: 0,
 	};
 
