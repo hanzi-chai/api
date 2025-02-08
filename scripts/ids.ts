@@ -168,7 +168,7 @@ function process() {
 			name: null,
 			gf0014_id: null,
 			gf3001_id: null,
-			gb2312: false,
+			gb2312: 0,
 			ambiguous: false,
 			glyphs: [glyph],
 		});

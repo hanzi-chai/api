@@ -35,7 +35,6 @@ const glyphReverse = (c: any) => {
 function fromModel(model: CharacterModel): Character {
 	return {
 		...model,
-		gb2312: model.gb2312 === 1,
 		readings: JSON.parse(model.readings),
 		glyphs: JSON.parse(model.glyphs).map(glyphForward),
 		ambiguous: model.ambiguous === 1,
@@ -45,7 +44,6 @@ function fromModel(model: CharacterModel): Character {
 function toModel(character: Character): CharacterModel {
 	return {
 		...character,
-		gb2312: +character.gb2312 as 0 | 1,
 		readings: JSON.stringify(character.readings),
 		glyphs: JSON.stringify(character.glyphs.map(glyphReverse)),
 		ambiguous: +character.ambiguous as 0 | 1,

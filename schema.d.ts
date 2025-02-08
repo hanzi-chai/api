@@ -3,7 +3,7 @@
 interface CharacterModel {
 	unicode: number;
 	tygf: 0 | 1 | 2 | 3;
-	gb2312: 0 | 1;
+	gb2312: 0 | 1 | 2;
 	readings: string;
 	glyphs: string;
 	name: string | null;
@@ -38,7 +38,7 @@ interface Compound {
 interface Character {
 	unicode: number;
 	tygf: 0 | 1 | 2 | 3;
-	gb2312: boolean;
+	gb2312: 0 | 1 | 2;
 	name: string | null;
 	gf0014_id: number | null;
 	gf3001_id: number | null;
