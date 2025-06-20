@@ -27,12 +27,20 @@ interface Block {
   strokes: number;
 }
 
+interface CompoundParameters {
+  gap2?: number;
+  scale2?: number;
+  gap3?: number;
+  scale3?: number;
+}
+
 interface Compound {
   type: "compound";
   operator: Operator;
   operandList: string[];
   tags?: string[];
   order?: Block[];
+  parameters?: CompoundParameters;
 }
 
 interface Character {
