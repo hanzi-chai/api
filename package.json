@@ -14,7 +14,7 @@
 		"axios": "^1.6.4",
 		"dotenv": "^16.4.5",
 		"typescript": "^5.2.2",
-		"wrangler": "^3.14.0"
+		"wrangler": "^4.20.5"
 	},
 	"dependencies": {
 		"@cfworker/json-schema": "^1.12.7",

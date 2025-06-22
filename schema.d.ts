@@ -22,6 +22,48 @@ interface Reading {
   importance: number;
 }
 
+interface BasicComponent {
+  type: "basic_component";
+  tags?: string[];
+  strokes: SVGStroke[];
+}
+
+interface DerivedComponent {
+  type: "derived_component";
+  tags?: string[];
+  source: string;
+  strokes: Stroke[];
+}
+
+interface SplicedComponent extends Omit<Compound, "type"> {
+  type: "spliced_component";
+}
+
+type Component = BasicComponent | DerivedComponent | SplicedComponent;
+
+const operators = [
+  "⿰",
+  "⿱",
+  "⿲",
+  "⿳",
+  "⿴",
+  "⿵",
+  "⿶",
+  "⿷",
+  "⿸",
+  "⿹",
+  "⿺",
+  "⿻",
+] as const;
+
+/**
+ * 结构表示符
+ * 例如 ⿰、⿱ 等
+ * 符合 Unicode 中的 Ideography Description Characters
+ * 参见 https://en.wikipedia.org/wiki/Ideographic_Description_Characters_(Unicode_block)
+ */
+type Operator = (typeof operators)[number];
+
 interface Block {
   index: number;
   strokes: number;
@@ -51,7 +93,7 @@ interface Character {
 	gf0014_id: number | null;
 	gf3001_id: number | null;
 	readings: Reading[];
-	glyphs: Compound[];
+	glyphs: (Component | Compound)[];
 	ambiguous: boolean;
 };
 

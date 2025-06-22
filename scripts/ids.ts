@@ -1,27 +1,38 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { listToObject, update } from './utils';
+const ranges: Record<string, [number, number]> = {
+	基本: [0x4e00, 0x9fff], // CJK Unified Ideographs
+	扩展A: [0x3400, 0x4dbf], // CJK Extension A
+	扩展B: [0x20000, 0x2a6df], // CJK Extension B
+	扩展C: [0x2a700, 0x2b73f], // CJK Extension C
+	扩展D: [0x2b740, 0x2b81f], // CJK Extension D
+	扩展E: [0x2b820, 0x2ceaf], // CJK Extension E
+	扩展F: [0x2ceb0, 0x2ebef], // CJK Extension F
+	扩展G: [0x30000, 0x3134f], // CJK Extension G
+	扩展H: [0x31350, 0x323af], // CJK Extension H
+	扩展I: [0x2ebf0, 0x2ee5f], // CJK Extension I
+	部首补充: [0x2e80, 0x2eff], // CJK Radicals Supplement
+	康熙部首: [0x2f00, 0x2fdf], // Kangxi Radicals
+	符号标点: [0x3000, 0x303f], // CJK Symbols and Punctuation
+	笔画: [0x31c0, 0x31ef], // CJK Strokes
+	兼容文字: [0xf900, 0xfaff], // CJK Compatibility Ideographs
+	西夏文: [0x17000, 0x187ff], // Tangut
+	西夏文部首: [0x18800, 0x18aff], // Tangut Components
+	契丹小字: [0x18b00, 0x18cff], // Khitan Small Script
+	西夏文补充: [0x18d00, 0x18d8f], // Tangut Supplement
+	PUA: [0xe000, 0xffff], // PUA
+};
 
-function getValidCharacters() {
+export function getTag(unicode: number): string | null {
+	for (const [tag, [start, end]] of Object.entries(ranges)) {
+		if (unicode >= start && unicode <= end) {
+			return tag;
+		}
+	}
+	return null;
+}
+
+export function getValidCharacters() {
 	const characters = new Set<string>();
-	const ranges: [number, number][] = [
-		[0x4e00, 0x9fff], // CJK Unified Ideographs
-		[0x3400, 0x4dbf], // CJK Extension A
-		[0x20000, 0x2a6df], // CJK Extension B
-		[0x2a700, 0x2b73f], // CJK Extension C
-		[0x2b740, 0x2b81f], // CJK Extension D
-		[0x2b820, 0x2ceaf], // CJK Extension E
-		[0x2ceb0, 0x2ebef], // CJK Extension F
-		[0x30000, 0x3134f], // CJK Extension G
-		[0x31350, 0x323af], // CJK Extension H
-		[0x2ebf0, 0x2ee5f], // CJK Extension I
-		[0xf900, 0xfaff], // CJK Compatibility Ideographs
-		[0x2f00, 0x2fdf], // Kangxi Radicals
-		[0x31c0, 0x31ef], // CJK Strokes
-		[0x2e80, 0x2eff], // CJK Radicals Supplement
-		[0x2f00, 0x2fdf], // Kangxi Radicals
-		[0xe000, 0xefff], // PUA
-	];
-	for (const [start, end] of ranges) {
+	for (const [start, end] of Object.values(ranges)) {
 		for (let i = start; i <= end; i++) {
 			characters.add(String.fromCodePoint(i));
 		}
@@ -29,160 +40,181 @@ function getValidCharacters() {
 	return characters;
 }
 
-function getPUATable() {
-	const pua = readFileSync('scripts/pua.txt', 'utf-8').split('\n');
-	const puaTable = new Map<string, number>();
-	for (const line of pua) {
-		const [codepoint_str, character] = line.split('\t');
-		const codepoint = parseInt(codepoint_str, 16);
-		puaTable.set(character, codepoint);
-	}
-	return puaTable;
+const operators = [
+	"⿰",
+	"⿱",
+	"⿲",
+	"⿳",
+	"⿴",
+	"⿵",
+	"⿶",
+	"⿷",
+	"⿸",
+	"⿹",
+	"⿺",
+	"⿻",
+] as const;
+
+/** -------------- 抽象语法树类型 ---------------- */
+export interface IDSComponent {
+	content: string; // 组件内容
+	tags: string[]; // 标签列表
 }
 
-function tokenize(expr: string) {
-	const chars = [...expr];
-	const tokens: string[] = [];
-	let token = '';
-	let isParens = false;
-	for (const char of chars) {
-		if (char === '{') {
-			token = '{';
-			isParens = true;
-		} else if (char === '}') {
-			token += '}';
-			if (token.match(/\{[0-9A-F]{4}\}/)) {
-				token = String.fromCodePoint(parseInt(token.slice(1, -1), 16));
-			}
-			tokens.push(token);
-			token = '';
-			isParens = false;
-		} else {
-			if (isParens) {
-				token += char;
-			} else {
-				tokens.push(char);
-			}
-		}
-	}
-	return tokens;
+type IDSOperand = string | IDSCompound;
+
+export interface IDSCompound {
+	operator: Operator;
+	operandList: IDSOperand[];
+	tags: string[];
 }
 
-function getIDSInfo(valid: Set<string>) {
-	const data = readFileSync('data/ids.txt', 'utf-8').split('\n');
-	const patch = readFileSync('scripts/patch.txt', 'utf-8')
-		.trim()
-		.split('\n')
-		.map((x) => x.split('\t')) as [string, string][];
-	const result: [string, string[]][] = [];
-	for (const line of data) {
-		if (!line || line.startsWith('#')) continue;
-		const [codepoint_str, character, ...ids] = line.split('\t');
-		if (!ids.length) continue;
-		const codepoint = parseInt(codepoint_str.slice(2), 16);
-		console.assert(String.fromCodePoint(codepoint) === character, character);
-		if (!valid.has(character)) continue;
-		let mainland = ids.find((x) => x.includes('G'));
-		if (!mainland) mainland = ids[0];
-		console.assert(mainland, character);
-		let expr = mainland.slice(1).split('$')[0];
-		for (const [from, to] of patch) {
-			expr = expr.replaceAll(new RegExp(from, 'g'), to);
-		}
-		result.push([character, tokenize(expr)]);
-	}
-	return result;
+export type IDS = IDSComponent | IDSCompound;
+
+/** -------------- 词法分析 ---------------------- */
+enum TokenType {
+	Operator = "Operator", // 表意文字描述符
+	Brace = "Brace", // {...}
+	Tags = "Tags", // [...]
+	Char = "Char", // 单个汉字或其他字符
+	EOF = "EOF",
 }
 
-const replace = new Map([
-	['㇒', '丿'],
-	['𠦝', '龺'],
-	['𠄠', '二'],
-	['𡭔', '小'],
-	['𡵆', '屺'],
-	['𦔮', '耴'],
-	['{20}', '丸'],
-	['{80}', '㓁'],
-	['{88}', '亼'],
-	['{43}', '彐'],
-	['𫜹', '彐'],
-]);
+interface Token {
+	type: TokenType;
+	value: string;
+}
 
-function process() {
-	const repertoire = listToObject(JSON.parse(readFileSync('data/repertoire.json', 'utf-8')));
-	const validCharacters = getValidCharacters();
-	const idsInfo = getIDSInfo(validCharacters);
-	const puaTable = getPUATable();
+class Lexer {
+	private pos = 0;
+	private readonly len: number;
+	private readonly input: string[];
 
-	const binary = '⿰⿱⿴⿵⿶⿷⿸⿹⿺⿻';
-	const ternary = '⿲⿳';
-	const badIDS: [string, string[]][] = [];
-	let count = 0;
-	let success = 0;
-
-	const newRepertoire: Character[] = [];
-	for (const [character, tokens] of idsInfo) {
-		if (repertoire[character]) continue; // well-known characters
-		count++;
-		const operator = tokens[0];
-		const operands = tokens.slice(1);
-		if (binary.includes(operator) && operands.length === 2) {
-		} else if (ternary.includes(operator) && operands.length === 3) {
-		} else {
-			// invalid
-			badIDS.push([character, tokens]);
-			continue;
-		}
-		let allKnown = true;
-		for (let i = 0; i != operands.length; i++) {
-			const part = operands[i];
-			if (validCharacters.has(part)) continue;
-			if (replace.has(part)) {
-				operands[i] = replace.get(part)!;
-				continue;
-			}
-			if (puaTable.has(part)) {
-				operands[i] = String.fromCodePoint(puaTable.get(part)!);
-				continue;
-			}
-			badIDS.push([character, tokens]);
-			allKnown = false;
-			break;
-		}
-		if (!allKnown) continue;
-		const glyph: Compound = {
-			type: 'compound',
-			operator: operator,
-			operandList: operands,
-		};
-		if (operator === '⿺' && '辶廴夨'.includes(operands[0])) {
-			glyph.order = [
-				{ index: 1, strokes: 0 },
-				{ index: 0, strokes: 0 },
-			];
-		}
-		newRepertoire.push({
-			unicode: character.codePointAt(0) as number,
-			readings: [],
-			tygf: 0,
-			name: null,
-			gf0014_id: null,
-			gf3001_id: null,
-			gb2312: 0,
-			ambiguous: false,
-			glyphs: [glyph],
-		});
-		success++;
+	constructor(input: string) {
+		this.input = Array.from(input); // 转换为字符数组，便于索引
+		this.len = this.input.length;
 	}
 
-	writeFileSync('data/new-repertoire.json', JSON.stringify(newRepertoire, null, 2));
-	writeFileSync('data/bad-ids.txt', badIDS.map(([character, tokens]) => `${character}\t${tokens.join('')}`).join('\n'));
-	console.log(`Total: ${count}, Success: ${success}`);
+	/** 取得下一个 Token */
+	nextToken(): Token {
+		if (this.pos >= this.len) return { type: TokenType.EOF, value: "" };
 
-	if (count === success) {
-		console.log('All characters are successfully processed.');
-		update(newRepertoire);
+		const ch = this.input[this.pos];
+
+		// 1. IDS 描述符
+		if (operators.includes(ch as Operator)) {
+			this.pos++;
+			return { type: TokenType.Operator, value: ch };
+		}
+
+		// 2. {...} 组件
+		if (ch === "{") {
+			const start = ++this.pos;
+			while (this.pos < this.len && this.input[this.pos] !== "}") this.pos++;
+			if (this.pos >= this.len) throw new SyntaxError("Unterminated '{'");
+			let content = this.input.slice(start, this.pos).join("");
+			this.pos++; // 跳过 '}'
+			if ([...content].length === 1) {
+				content += "变"; // 单个字符的部件默认加上“变”字
+			}
+			return { type: TokenType.Brace, value: content };
+		}
+
+		// 3. [...] 标签
+		if (ch === "[") {
+			const start = ++this.pos;
+			while (this.pos < this.len && this.input[this.pos] !== "]") this.pos++;
+			if (this.pos >= this.len) throw new SyntaxError("Unterminated '['");
+			const content = this.input.slice(start, this.pos);
+			this.pos++; // 跳过 ']'
+			return { type: TokenType.Tags, value: content.join("") };
+		}
+
+		// 4. 单字符（默认作为汉字/部件）
+		this.pos++;
+		return { type: TokenType.Char, value: ch };
 	}
 }
 
-process();
+/** -------------- 语法分析 ---------------------- */
+class Parser {
+	private lookahead: Token;
+
+	constructor(private readonly lexer: Lexer) {
+		this.lookahead = lexer.nextToken();
+	}
+
+	parseTags(): string[] {
+		// 3. 读取可选的标签
+		const tags: string[] = [];
+		if (this.lookahead.type === TokenType.Tags) {
+			const tagToken = this.eat(TokenType.Tags);
+			tags.push(...Array.from(tagToken.value)); // 拆成单字母数组
+		}
+		return tags;
+	}
+
+	/** 入口：解析整个表达式 */
+	parseExpression(): IDS {
+		if (
+			this.lookahead.type === TokenType.Char ||
+			this.lookahead.type === TokenType.Brace
+		) {
+			// 直接返回单个汉字或部件
+			const content = this.eat(this.lookahead.type).value;
+			const tags = this.parseTags();
+			return { content, tags };
+		}
+		// 1. 读取前缀运算符
+		const opToken = this.eat(TokenType.Operator);
+
+		// 2. 读取操作数（数量由表达式决定，这里不做硬编码限制）
+		const operandList: (string | IDSCompound)[] = [];
+		const count = ["⿲", "⿳"].includes(opToken.value) ? 3 : 2; // 二元或三元运算符
+		while (operandList.length < count) {
+			operandList.push(this.parseOperand());
+		}
+		// 3. 读取可选的标签
+		const tags = this.parseTags();
+
+		return { operator: opToken.value as Operator, operandList, tags };
+	}
+
+	/** 解析单个操作数 */
+	private parseOperand(): IDSOperand {
+		switch (this.lookahead.type) {
+			case TokenType.Operator:
+				return this.parseExpression() as IDSCompound; // 嵌套 IDS
+			case TokenType.Brace:
+				return this.eat(TokenType.Brace).value; // 非成字部件
+			case TokenType.Char:
+				return this.eat(TokenType.Char).value; // 单汉字
+			default:
+				throw new SyntaxError(`Unexpected token: ${this.lookahead.type}`);
+		}
+	}
+
+	/** 匹配并消费预期的 Token */
+	private eat(expected: TokenType): Token {
+		if (this.lookahead.type !== expected) {
+			throw new SyntaxError(`Expect ${expected}, got ${this.lookahead.type}`);
+		}
+		const current = this.lookahead;
+		this.lookahead = this.lexer.nextToken();
+		return current;
+	}
+}
+
+/** -------------- 对外导出函数 ------------------ */
+export function parseIDS(input: string): IDS {
+	const parser = new Parser(new Lexer(input));
+	const ast = parser.parseExpression();
+
+	// 若仍有残余输入，则报错
+	if (parser["lookahead"].type !== TokenType.EOF) {
+		throw new SyntaxError(
+			`Unexpected trailing input ${parser["lookahead"].type} ${parser["lookahead"].value}`
+		);
+	}
+	return ast;
+}

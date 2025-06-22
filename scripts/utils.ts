@@ -7,8 +7,7 @@ export function listToObject<T extends { unicode: number }>(list: T[]) {
 
 export async function update(data: Character[]) {
 	const token = process.env.JWT;
-	console.log(token);
-	const result = await axios.put('https://api.chaifen.app/repertoire/batch', data, {
+	const result = await axios.post('https://api.chaifen.app/repertoire/batch', data, {
 		headers: {
 			Authorization: `Bearer ${token}`,
 		},

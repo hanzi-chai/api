@@ -10,3 +10,6 @@ id = "c4aea1d089f64920b95ee9be79e3f8f6"
 binding = "CHAI"
 database_name = "chai"
 database_id = "241850ca-f3d4-465a-b365-2dc489841ea1"
+
+[observability.logs]
+enabled = true

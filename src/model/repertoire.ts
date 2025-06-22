@@ -151,16 +151,4 @@ export class Model {
 		}
 		return true;
 	}
-
-	public static async mutate(env: Env, unicode_old: number, unicode_new: number): Promise<Result<boolean>> {
-		try {
-			await env.CHAI.prepare(`UPDATE ${table} SET unicode = ? where unicode = ?`).bind(unicode_new, unicode_old).run();
-			await env.CHAI.prepare(`UPDATE ${table} SET glyphs = REPLACE(glyphs, ?, ?)`)
-				.bind(unicode_old.toString(), unicode_new.toString())
-				.run();
-		} catch (err) {
-			return new Err(ErrCode.DataUpdateFailed, `数据更新失败（${(err as Error).message}）`);
-		}
-		return true;
-	}
 }
