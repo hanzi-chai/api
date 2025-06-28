@@ -1,7 +1,7 @@
 import { assert } from "console";
 import { readFileSync, writeFileSync } from "fs";
 import { getTag, IDS, IDSComponent, IDSCompound, parseIDS } from "./ids";
-import { update } from "./utils";
+import { put } from "./utils";
 
 interface IDSCharacter {
 	unicode: number;
@@ -203,4 +203,4 @@ const getSuffix = (operator: string, position: number) => {
 const idsCharacters = getIDSCharacters("data/ids.txt");
 const repertoire = transformIDSCharacters(idsCharacters);
 writeFileSync("data/repertoire.new.json", JSON.stringify(repertoire));
-update(repertoire);
+put("/repertoire/batch", repertoire);

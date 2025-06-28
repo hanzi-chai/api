@@ -155,6 +155,8 @@ export async function CreatePUA(
 	return await Model.create(env, model);
 }
 
+type Lookup = { unicode: number, glyphs: string };
+
 /** DELETE:/repertoire/:unicode */
 export async function Delete(
 	request: IRequest,
@@ -162,14 +164,20 @@ export async function Delete(
 	ctx: Ctx
 ): Promise<Result<boolean>> {
 	const { results } = await env.CHAI.prepare(
-		`SELECT * FROM repertoire WHERE glyphs like ?`
-	)
-		.bind(`%${ctx.unicode}%`)
-		.all();
-	if (results.length > 0) {
+		`SELECT unicode, glyphs FROM repertoire`
+	).all<Lookup>();
+	const regex = new RegExp(`(?<!\\d)${ctx.unicode}(?!\\d)`);
+	let hint: Lookup | undefined = undefined;
+	for (const result of results) {
+		if (regex.test(result.glyphs)) {
+			hint = result;
+			break;
+		}
+	}
+	if (hint !== undefined) {
 		return new Err(
 			ErrCode.PermissionDenied,
-			"无法删除，因为还有别的字形引用它"
+			`无法删除，因为还有 ${hint.unicode} 引用它: ${hint.glyphs}`
 		);
 	}
 	return await Model.delete(env, ctx.unicode);
