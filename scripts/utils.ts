@@ -22,7 +22,7 @@ export async function post<T>(route: string, data: T) {
 	console.log(result.data);
 }
 
-export async function del(route: string) {
-	const result = await axios.delete(endpoint + route, { headers });
+export async function del<T>(route: string, data: T) {
+	const result = await axios.delete(endpoint + route, { headers, data });
 	console.log(result.data);
 }

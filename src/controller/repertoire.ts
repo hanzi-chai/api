@@ -155,7 +155,7 @@ export async function CreatePUA(
 	return await Model.create(env, model);
 }
 
-type Lookup = { unicode: number, glyphs: string };
+type Lookup = { unicode: number; glyphs: string };
 
 /** DELETE:/repertoire/:unicode */
 export async function Delete(
@@ -210,4 +210,14 @@ export async function UpdateBatch(
 ): Promise<Result<boolean>> {
 	let glyph: CharacterModel[] = await request.json();
 	return await Model.updateBatch(env, glyph);
+}
+
+export async function DeleteBatch(
+	request: IRequest,
+	env: Env
+): Promise<Result<boolean>> {
+	const unicodes: number[] = await request.json();
+	const statement = env.CHAI.prepare(`DELETE FROM repertoire WHERE unicode=?`);
+	await env.CHAI.batch(unicodes.map((unicode) => statement.bind(unicode)));
+	return true;
 }
