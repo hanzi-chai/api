@@ -39,7 +39,15 @@ interface SplicedComponent extends Omit<Compound, "type"> {
   type: "spliced_component";
 }
 
+interface Identity {
+  type: "identity";
+  tags?: string[];
+  source: string;
+}
+
 type Component = BasicComponent | DerivedComponent | SplicedComponent;
+
+type Glyph = Component | Compound | Identity;
 
 const operators = [
   "⿰",
@@ -93,7 +101,7 @@ interface Character {
 	gf0014_id: number | null;
 	gf3001_id: number | null;
 	readings: Reading[];
-	glyphs: (Component | Compound)[];
+	glyphs: Glyph[];
 	ambiguous: boolean;
 };
 

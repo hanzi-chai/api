@@ -7,6 +7,27 @@ export function listToObject<T extends { unicode: number }>(list: T[]) {
 	);
 }
 
+const charToCode = (char: string) => char.codePointAt(0)!;
+
+const glyphReverse = (c: Component | Compound | Identity) => {
+  if (c.type === "basic_component") {
+    return c;
+  } else if (c.type === "derived_component" || c.type === "identity") {
+    return { ...c, source: charToCode(c.source) };
+  } else {
+    return { ...c, operandList: c.operandList.map(charToCode) };
+  }
+};
+
+export function toModel(character: Character) {
+  return {
+    ...character,
+    readings: JSON.stringify(character.readings),
+    glyphs: JSON.stringify(character.glyphs.map(glyphReverse)),
+    ambiguous: +character.ambiguous as 0 | 1,
+  };
+}
+
 const endpoint = "https://api.chaifen.app";
 const headers = {
 	Authorization: `Bearer ${process.env.JWT}`,

@@ -9,6 +9,7 @@ const ranges: Record<string, [number, number]> = {
 	扩展G: [0x30000, 0x3134f], // CJK Extension G
 	扩展H: [0x31350, 0x323af], // CJK Extension H
 	扩展I: [0x2ebf0, 0x2ee5f], // CJK Extension I
+	扩展J: [0x323b0, 0x3347f], // CJK Extension J
 	部首补充: [0x2e80, 0x2eff], // CJK Radicals Supplement
 	康熙部首: [0x2f00, 0x2fdf], // Kangxi Radicals
 	符号标点: [0x3000, 0x303f], // CJK Symbols and Punctuation
@@ -17,8 +18,11 @@ const ranges: Record<string, [number, number]> = {
 	西夏文: [0x17000, 0x187ff], // Tangut
 	西夏文部首: [0x18800, 0x18aff], // Tangut Components
 	契丹小字: [0x18b00, 0x18cff], // Khitan Small Script
-	西夏文补充: [0x18d00, 0x18d8f], // Tangut Supplement
+	西夏文补充: [0x18d00, 0x18d7f], // Tangut Supplement
+	西夏文部件补充: [0x18d80, 0x18dff], // Tangut Components Supplement
 	PUA: [0xe000, 0xffff], // PUA
+	SPUA_A: [0xf0000, 0xffffd], // Supplementary PUA-A
+	SPUA_B: [0x100000, 0x10fffd], // Supplementary PUA-B
 };
 
 export function getTag(unicode: number): string | null {
@@ -40,27 +44,33 @@ export function getValidCharacters() {
 	return characters;
 }
 
-const operators = [
-	"⿰",
-	"⿱",
-	"⿲",
-	"⿳",
-	"⿴",
-	"⿵",
-	"⿶",
-	"⿷",
-	"⿸",
-	"⿹",
-	"⿺",
-	"⿻",
+export const operators = [
+  "⿰",
+  "⿱",
+  "⿲",
+  "⿳",
+  "⿴",
+  "⿵",
+  "⿶",
+  "⿷",
+  "⿸",
+  "⿹",
+  "⿺",
+  "⿻",
+  "⿼",
+  "⿽",
+  "⿾",
+  "⿿",
 ] as const;
 
 /** -------------- 抽象语法树类型 ---------------- */
+// content 一字表示该字符为字根，多字表示该字符等同于某 PUA 部件
 export interface IDSComponent {
 	content: string; // 组件内容
 	tags: string[]; // 标签列表
 }
 
+// operand 为 string 时，一字表示常规字符，多字表示 PUA 部件
 type IDSOperand = string | IDSCompound;
 
 export interface IDSCompound {
