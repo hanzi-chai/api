@@ -162,7 +162,7 @@ class PUAFactory {
 			}
 			operandList.push(operand);
 		}
-		return { type: "compound", operator: ids.operator, operandList }; // 返回处理后的复合描述
+		return { type: "compound", tags: ids.tags, operator: ids.operator, operandList }; // 返回处理后的复合描述
 	}
 }
 
@@ -174,7 +174,6 @@ const base: Character = {
 	gf0014_id: null,
 	gf3001_id: null,
 	ambiguous: false,
-	readings: [],
 	glyphs: [],
 };
 

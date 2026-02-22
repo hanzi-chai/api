@@ -22,7 +22,6 @@ const glyphReverse = (c: Component | Compound | Identity) => {
 export function toModel(character: Character) {
   return {
     ...character,
-    readings: JSON.stringify(character.readings),
     glyphs: JSON.stringify(character.glyphs.map(glyphReverse)),
     ambiguous: +character.ambiguous as 0 | 1,
   };

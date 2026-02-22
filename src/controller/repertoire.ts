@@ -144,7 +144,6 @@ export async function CreatePUA(
 		unicode,
 		tygf: 0,
 		gb2312: 0,
-		readings: "[]",
 		glyphs: "[]",
 		name: glyph.name,
 		gf0014_id: null,

@@ -9,12 +9,6 @@
 							"gb2312": {
 									"type": "boolean"
 							},
-							"readings": {
-									"type": "array",
-									"items": {
-											"type": "string"
-									}
-							},
 							"glyphs": {
 									"type": "array",
 									"items": {}
@@ -53,7 +47,6 @@
 							"gf0014_id",
 							"glyphs",
 							"name",
-							"readings",
 							"tygf",
 							"unicode"
 					]
