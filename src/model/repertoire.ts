@@ -20,9 +20,9 @@ export class Model {
 		return res;
 	}
 
-	public static async generateUnicode(env: Env, type: 'component' | 'compound'): Promise<Result<number>> {
+	public static async generateUnicode(env: Env, type: string): Promise<Result<number>> {
 		var res: any[];
-		const index = type === 'component' ? 0 : 1;
+		const index = type.includes('component') ? 0 : 1;
 		const breakpoint = [0xe000, 0xe800, 0xf000] as const;
 		const from = breakpoint[index];
 		const to = breakpoint[index + 1];

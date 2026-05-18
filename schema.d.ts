@@ -26,7 +26,7 @@ interface BasicComponent {
 interface DerivedComponent {
   type: "derived_component";
   tags?: string[];
-  source: string;
+  source: number;
   strokes: Stroke[];
 }
 
@@ -37,7 +37,7 @@ interface SplicedComponent extends Omit<Compound, "type"> {
 interface Identity {
   type: "identity";
   tags?: string[];
-  source: string;
+  source: number;
 }
 
 type Component = BasicComponent | DerivedComponent | SplicedComponent;
@@ -82,7 +82,7 @@ interface CompoundParameters {
 interface Compound {
   type: "compound";
   operator: Operator;
-  operandList: string[];
+  operandList: number[];
   tags?: string[];
   order?: Block[];
   parameters?: CompoundParameters;
