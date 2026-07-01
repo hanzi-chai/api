@@ -1,12 +1,12 @@
-import { IRequest } from 'itty-router';
-import { Ctx, Env } from '../dto/context';
-import { Err, ErrCode, Ok, Result } from '../error/error';
-import { User, UserLogin, UserRole, UserState } from '../dto/users';
-import { DataList } from '../dto/list';
-import { loadString } from '../dto/load';
-import { UserModel } from '../model/users';
-import { Claims } from '../dto/jwt';
-import { authorizedAdmin } from '../middleware/jwt';
+import { IRequest } from "itty-router";
+import { Ctx, Env } from "../dto/context";
+import { Err, ErrCode, Ok, Result } from "../error/error";
+import { User, UserLogin, UserRole, UserState } from "../dto/users";
+import { DataList } from "../dto/list";
+import { loadString } from "../dto/load";
+import { UserModel } from "../model/users";
+import { Claims } from "../dto/jwt";
+import { authorizedAdmin } from "../middleware/jwt";
 
 /** 字母开头, 字母或数字结尾, [_-] 连接 */
 const patUid = /^[a-zA-Z]([_-]?[a-zA-Z0-9]+)*$/;
@@ -35,27 +35,40 @@ async function userToModel(user: any): Promise<Result<UserModel>> {
 	userModel.avatar = loadString(user.avatar);
 	// 密码在前端请求中使用 md5 或 sha1, 后端再将之存为 bcrypt
 	userModel.password = await hashPassword(loadString(user.password));
-	if (userModel.id.match(patUid) && userModel.name.match(patName) && userModel.email.match(patEmail)) {
+	if (
+		userModel.id.match(patUid) &&
+		userModel.name.match(patName) &&
+		userModel.email.match(patEmail)
+	) {
 		return userModel;
 	} else {
-		return new Err(ErrCode.ParamInvalid, '参数格式不正确');
+		return new Err(ErrCode.ParamInvalid, "参数格式不正确");
 	}
 }
 
 /** 输入 -> SHA1 -> Base64 -> 输出 */
 async function hashPassword(password: string): Promise<string> {
-	const buffer = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(password));
+	const buffer = await crypto.subtle.digest(
+		"SHA-1",
+		new TextEncoder().encode(password),
+	);
 	return btoa(String.fromCharCode(...new Uint8Array(buffer)));
 }
 
 /** 将给定的密码与库中记录比对 */
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
+async function verifyPassword(
+	password: string,
+	hash: string,
+): Promise<boolean> {
 	const newHash = await hashPassword(password);
 	return newHash === hash;
 }
 
 /** GET:/users?page=1&size=20 */
-export async function List(request: IRequest, env: Env): Promise<Result<DataList<User>>> {
+export async function List(
+	request: IRequest,
+	env: Env,
+): Promise<Result<DataList<User>>> {
 	// 第 `page` 页, 每页 `size` 条
 	const { page, size } = request.query;
 
@@ -72,7 +85,11 @@ export async function List(request: IRequest, env: Env): Promise<Result<DataList
 
 	if (userList.total > (userList.page - 1) * userList.size) {
 		// 本页有数据时, 查询数据
-		const result = await UserModel.list(env, (userList.page - 1) * userList.size, userList.size);
+		const result = await UserModel.list(
+			env,
+			(userList.page - 1) * userList.size,
+			userList.size,
+		);
 		if (!Ok(result)) {
 			return result as Err;
 		}
@@ -85,7 +102,7 @@ export async function List(request: IRequest, env: Env): Promise<Result<DataList
 
 /** GET:/users/:id */
 export async function Info(request: IRequest, env: Env): Promise<Result<User>> {
-	const userId = request.params['id'];
+	const userId = request.params["id"];
 
 	// 从 `model` 层取回数据
 	const result = await UserModel.byId(env, userId);
@@ -99,14 +116,17 @@ export async function Info(request: IRequest, env: Env): Promise<Result<User>> {
 }
 
 /** POST:/users */
-export async function Create(request: IRequest, env: Env): Promise<Result<boolean>> {
+export async function Create(
+	request: IRequest,
+	env: Env,
+): Promise<Result<boolean>> {
 	var args: any = {};
 	try {
 		const body: any = await request.json();
 		if (body.id && body.email) {
 			args = body;
 		} else {
-			return new Err(ErrCode.ParamInvalid, '用户名或邮箱不正确');
+			return new Err(ErrCode.ParamInvalid, "用户名或邮箱不正确");
 		}
 	} catch (err) {
 		return new Err(ErrCode.UnknownInnerError, (err as Error).message);
@@ -123,7 +143,7 @@ export async function Create(request: IRequest, env: Env): Promise<Result<boolea
 		return exist as Err;
 	}
 	if (exist) {
-		return new Err(ErrCode.RecordExists, '用户已存在');
+		return new Err(ErrCode.RecordExists, "用户已存在");
 	}
 
 	// 创建用户
@@ -142,10 +162,13 @@ export async function Create(request: IRequest, env: Env): Promise<Result<boolea
 }
 
 /** DELETE:/users/:id */
-export async function Delete(request: IRequest, env: Env): Promise<Result<boolean>> {
-	const userId = request.params['id'];
+export async function Delete(
+	request: IRequest,
+	env: Env,
+): Promise<Result<boolean>> {
+	const userId = request.params["id"];
 	if (!userId) {
-		return new Err(ErrCode.ParamInvalid, '用户名不正确');
+		return new Err(ErrCode.ParamInvalid, "用户名不正确");
 	}
 
 	const userModel = await UserModel.byId(env, userId);
@@ -157,10 +180,14 @@ export async function Delete(request: IRequest, env: Env): Promise<Result<boolea
 }
 
 /** PUT:/users/:id */
-export async function Update(request: IRequest, env: Env, ctx: Ctx): Promise<Result<boolean>> {
-	const userId = request.params['id'];
+export async function Update(
+	request: IRequest,
+	env: Env,
+	ctx: Ctx,
+): Promise<Result<boolean>> {
+	const userId = request.params["id"];
 	if (!userId) {
-		return new Err(ErrCode.ParamInvalid, '用户名不正确');
+		return new Err(ErrCode.ParamInvalid, "用户名不正确");
 	}
 
 	if (userId !== ctx.UserId) {
@@ -200,22 +227,26 @@ export async function Update(request: IRequest, env: Env, ctx: Ctx): Promise<Res
 }
 
 /** PUT:/users/:id/promote */
-export async function Promote(request: IRequest, env: Env, ctx: Ctx): Promise<Result<boolean>> {
-	const userId = request.params['id'];
+export async function Promote(
+	request: IRequest,
+	env: Env,
+	ctx: Ctx,
+): Promise<Result<boolean>> {
+	const userId = request.params["id"];
 	if (!userId) {
-		return new Err(ErrCode.ParamInvalid, '用户名不正确');
+		return new Err(ErrCode.ParamInvalid, "用户名不正确");
 	}
 	if (userId === ctx.UserId) {
-		return new Err(ErrCode.ParamInvalid, '不可修改当前登录用户');
+		return new Err(ErrCode.ParamInvalid, "不可修改当前登录用户");
 	}
 
 	var newRole: number;
 	try {
 		const body: any = await request.json();
-		if (typeof body.role === 'number') {
+		if (typeof body.role === "number") {
 			newRole = body.role;
 		} else {
-			return new Err(ErrCode.ParamInvalid, '用户角色枚举不正确');
+			return new Err(ErrCode.ParamInvalid, "用户角色枚举不正确");
 		}
 	} catch (err) {
 		return new Err(ErrCode.UnknownInnerError, (err as Error).message);
@@ -225,22 +256,26 @@ export async function Promote(request: IRequest, env: Env, ctx: Ctx): Promise<Re
 }
 
 /** PUT:/users/:id/disable */
-export async function Disable(request: IRequest, env: Env, ctx: Ctx): Promise<Result<boolean>> {
-	const userId = request.params['id'];
+export async function Disable(
+	request: IRequest,
+	env: Env,
+	ctx: Ctx,
+): Promise<Result<boolean>> {
+	const userId = request.params["id"];
 	if (!userId) {
-		return new Err(ErrCode.ParamInvalid, '用户名不正确');
+		return new Err(ErrCode.ParamInvalid, "用户名不正确");
 	}
 	if (userId === ctx.UserId) {
-		return new Err(ErrCode.ParamInvalid, '不可修改当前登录用户');
+		return new Err(ErrCode.ParamInvalid, "不可修改当前登录用户");
 	}
 
 	var newState: number;
 	try {
 		const body: any = await request.json();
-		if (typeof body.state === 'number') {
+		if (typeof body.state === "number") {
 			newState = body.state;
 		} else {
-			return new Err(ErrCode.ParamInvalid, '用户状态枚举不正确');
+			return new Err(ErrCode.ParamInvalid, "用户状态枚举不正确");
 		}
 	} catch (err) {
 		return new Err(ErrCode.UnknownInnerError, (err as Error).message);
@@ -250,14 +285,17 @@ export async function Disable(request: IRequest, env: Env, ctx: Ctx): Promise<Re
 }
 
 /** POST:/login */
-export async function Login(request: IRequest, env: Env): Promise<Result<UserLogin>> {
+export async function Login(
+	request: IRequest,
+	env: Env,
+): Promise<Result<UserLogin>> {
 	var args: any = {};
 	try {
 		const body: any = await request.json();
 		if (body.username && body.password) {
 			args = body;
 		} else {
-			return new Err(ErrCode.ParamInvalid, '用户名或密码不正确');
+			return new Err(ErrCode.ParamInvalid, "用户名或密码不正确");
 		}
 	} catch (err) {
 		return new Err(ErrCode.UnknownInnerError, (err as Error).message);
@@ -280,7 +318,7 @@ export async function Login(request: IRequest, env: Env): Promise<Result<UserLog
 
 	// 用户被停用, 禁止登录
 	if (userModel.state === UserState.Disabled) {
-		return new Err(ErrCode.PermissionDenied, '用户已停用');
+		return new Err(ErrCode.PermissionDenied, "用户已停用");
 	}
 
 	if (await verifyPassword(password, userModel.password)) {
@@ -290,6 +328,6 @@ export async function Login(request: IRequest, env: Env): Promise<Result<UserLog
 		// 返回用户信息和 jwt
 		return new UserLogin(user, token);
 	} else {
-		return new Err(ErrCode.ParamInvalid, '用户名或密码错误');
+		return new Err(ErrCode.ParamInvalid, "用户名或密码错误");
 	}
 }

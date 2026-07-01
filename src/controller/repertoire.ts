@@ -5,7 +5,7 @@ import { DataList } from "../dto/list";
 import { Model } from "../model/repertoire";
 import { loadNumber, loadString } from "../dto/load";
 import { Schema, Validator } from "@cfworker/json-schema";
-import schema from "../../schema.json";
+import schema from "../../schema/schema.json";
 
 const validateCharacter = new Validator(schema.definitions.Character as Schema);
 
@@ -48,7 +48,7 @@ export async function ListAll(request: Request, env: Env) {
 /** GET:/repertoire?page=1&size=20 */
 export async function List(
 	request: IRequest,
-	env: Env
+	env: Env,
 ): Promise<Result<DataList<CharacterModel>>> {
 	// 第 `page` 页, 每页 `size` 条
 	const { page, size } = request.query;
@@ -69,7 +69,7 @@ export async function List(
 		const result = await Model.list(
 			env,
 			(list.page - 1) * list.size,
-			list.size
+			list.size,
 		);
 		if (!Ok(result)) {
 			return result as Err;
@@ -85,7 +85,7 @@ export async function List(
 export async function Info(
 	request: IRequest,
 	env: Env,
-	ctx: Ctx
+	ctx: Ctx,
 ): Promise<Result<CharacterModel>> {
 	const glyphModel = await Model.byUnicode(env, ctx.unicode);
 	if (!Ok(glyphModel)) {
@@ -98,7 +98,7 @@ export async function Info(
 /** POST:/repertoire/:unicode */
 export async function Create(
 	request: IRequest,
-	env: Env
+	env: Env,
 ): Promise<Result<number>> {
 	let glyph: unknown;
 	try {
@@ -117,7 +117,7 @@ export async function Create(
 /** POST:/repertoire/batch */
 export async function CreateBatch(
 	request: IRequest,
-	env: Env
+	env: Env,
 ): Promise<Result<boolean>> {
 	let glyph: CharacterModel[] = await request.json();
 	return await Model.createBatch(env, glyph);
@@ -126,7 +126,7 @@ export async function CreateBatch(
 /** POST:/repertoire */
 export async function CreatePUA(
 	request: IRequest,
-	env: Env
+	env: Env,
 ): Promise<Result<number>> {
 	let glyph: any;
 	try {
@@ -160,10 +160,10 @@ type Lookup = { unicode: number; glyphs: string };
 export async function Delete(
 	request: IRequest,
 	env: Env,
-	ctx: Ctx
+	ctx: Ctx,
 ): Promise<Result<boolean>> {
 	const { results } = await env.CHAI.prepare(
-		`SELECT unicode, glyphs FROM repertoire`
+		`SELECT unicode, glyphs FROM repertoire`,
 	).all<Lookup>();
 	const regex = new RegExp(`(?<!\\d)${ctx.unicode}(?!\\d)`);
 	let hint: Lookup | undefined = undefined;
@@ -176,7 +176,7 @@ export async function Delete(
 	if (hint !== undefined) {
 		return new Err(
 			ErrCode.PermissionDenied,
-			`无法删除，因为还有 ${hint.unicode} 引用它: ${hint.glyphs}`
+			`无法删除，因为还有 ${hint.unicode} 引用它: ${hint.glyphs}`,
 		);
 	}
 	return await Model.delete(env, ctx.unicode);
@@ -185,7 +185,7 @@ export async function Delete(
 /** PUT:/repertoire/:unicode */
 export async function Update(
 	request: IRequest,
-	env: Env
+	env: Env,
 ): Promise<Result<boolean>> {
 	// 请求参数
 	let glyph: unknown;
@@ -205,7 +205,7 @@ export async function Update(
 /** POST:/repertoire/batch */
 export async function UpdateBatch(
 	request: IRequest,
-	env: Env
+	env: Env,
 ): Promise<Result<boolean>> {
 	let glyph: CharacterModel[] = await request.json();
 	return await Model.updateBatch(env, glyph);
@@ -213,7 +213,7 @@ export async function UpdateBatch(
 
 export async function DeleteBatch(
 	request: IRequest,
-	env: Env
+	env: Env,
 ): Promise<Result<boolean>> {
 	const unicodes: number[] = await request.json();
 	const statement = env.CHAI.prepare(`DELETE FROM repertoire WHERE unicode=?`);

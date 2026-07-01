@@ -3,28 +3,28 @@ import "dotenv/config";
 
 export function listToObject<T extends { unicode: number }>(list: T[]) {
 	return Object.fromEntries(
-		list.map((x) => [String.fromCodePoint(x.unicode), x])
+		list.map((x) => [String.fromCodePoint(x.unicode), x]),
 	);
 }
 
 const charToCode = (char: string) => char.codePointAt(0)!;
 
 const glyphReverse = (c: Component | Compound | Identity) => {
-  if (c.type === "basic_component") {
-    return c;
-  } else if (c.type === "derived_component" || c.type === "identity") {
-    return { ...c, source: charToCode(c.source) };
-  } else {
-    return { ...c, operandList: c.operandList.map(charToCode) };
-  }
+	if (c.type === "basic_component") {
+		return c;
+	} else if (c.type === "derived_component" || c.type === "identity") {
+		return { ...c, source: charToCode(c.source) };
+	} else {
+		return { ...c, operandList: c.operandList.map(charToCode) };
+	}
 };
 
 export function toModel(character: Character) {
-  return {
-    ...character,
-    glyphs: JSON.stringify(character.glyphs.map(glyphReverse)),
-    ambiguous: +character.ambiguous as 0 | 1,
-  };
+	return {
+		...character,
+		glyphs: JSON.stringify(character.glyphs.map(glyphReverse)),
+		ambiguous: +character.ambiguous as 0 | 1,
+	};
 }
 
 const endpoint = "https://api.chaifen.app";

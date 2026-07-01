@@ -14,7 +14,7 @@ export const routerRepertoire = Router({ base: "/repertoire" })
 		authorizedAdmin,
 		repertoire.validateUnicode,
 		repertoire.checkNotExist,
-		repertoire.Create
+		repertoire.Create,
 	)
 	.put("/batch", authorizedUser, authorizedAdmin, repertoire.UpdateBatch)
 	.put(
@@ -23,7 +23,7 @@ export const routerRepertoire = Router({ base: "/repertoire" })
 		authorizedAdmin,
 		repertoire.validateUnicode,
 		repertoire.checkExist,
-		repertoire.Update
+		repertoire.Update,
 	)
 	.delete("/batch", authorizedUser, authorizedAdmin, repertoire.DeleteBatch)
 	.delete(
@@ -31,5 +31,5 @@ export const routerRepertoire = Router({ base: "/repertoire" })
 		authorizedUser,
 		authorizedAdmin,
 		repertoire.validateUnicode,
-		repertoire.Delete
+		repertoire.Delete,
 	);

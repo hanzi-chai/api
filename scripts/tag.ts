@@ -4,7 +4,10 @@ import { listToObject, post } from "./utils";
 const sourceMap: Map<number, string[]> = new Map();
 const variantMap: Map<number, number> = new Map();
 const content = readFileSync("data/Unihan_IRGSources.txt", "utf-8");
-const replacer = new Map([["KP", "N"], ["UK", "B"]]);
+const replacer = new Map([
+	["KP", "N"],
+	["UK", "B"],
+]);
 for (const line of content.split("\n")) {
 	if (line.startsWith("#") || line.trim() === "") {
 		continue;
@@ -14,7 +17,9 @@ for (const line of content.split("\n")) {
 	if (field === "kCompatibilityVariant") {
 		const sourceUnicode = parseInt(value.slice(2), 16);
 		if (variantMap.has(unicode)) {
-			console.warn(`Duplicate compatibility variant for U+${unicode.toString(16).toUpperCase()}: U+${sourceUnicode.toString(16).toUpperCase()}`);
+			console.warn(
+				`Duplicate compatibility variant for U+${unicode.toString(16).toUpperCase()}: U+${sourceUnicode.toString(16).toUpperCase()}`,
+			);
 		} else {
 			variantMap.set(unicode, sourceUnicode);
 		}
@@ -45,17 +50,24 @@ for (let u = 0x2f800; u <= 0x2fa1d; u++) {
 const compatWithoutVariant = new Set<number>();
 for (const unicode of compatibility) {
 	if (!variantMap.has(unicode)) {
-		console.warn(`Compatibility character U+${unicode.toString(16).toUpperCase()} has no source`);
+		console.warn(
+			`Compatibility character U+${unicode.toString(16).toUpperCase()} has no source`,
+		);
 		compatWithoutVariant.add(unicode);
 	}
 }
 
-const repertoire_list: CharacterModel[] = JSON.parse(readFileSync("data/repertoire.json", "utf-8"));
+const repertoire_list: CharacterModel[] = JSON.parse(
+	readFileSync("data/repertoire.json", "utf-8"),
+);
 const repertoire = listToObject(repertoire_list);
 for (const unicode of compatibility) {
 	const char = String.fromCodePoint(unicode);
 	if (compatWithoutVariant.has(unicode)) {
-		console.assert(repertoire[char] !== undefined, `Compatibility character U+${unicode.toString(16).toUpperCase()} not found in repertoire`);
+		console.assert(
+			repertoire[char] !== undefined,
+			`Compatibility character U+${unicode.toString(16).toUpperCase()} not found in repertoire`,
+		);
 	} else {
 		const sourceUnicode = variantMap.get(unicode)!;
 		const model: CharacterModel = {
@@ -67,14 +79,13 @@ for (const unicode of compatibility) {
 			name: null,
 			glyphs: JSON.stringify([{ type: "identity", source: sourceUnicode }]),
 			ambiguous: 0,
-		}
+		};
 		repertoire[char] = model;
 	}
 }
 
 const processed = new Set();
 for (const [name, character] of Object.entries(repertoire)) {
-	delete character.readings;
 	const tags = sourceMap.get(character.unicode);
 	if (tags === undefined) {
 		continue;
@@ -91,7 +102,15 @@ console.log("All tags:", Array.from(new Set([...sourceMap.values()].flat())));
 console.log("Total characters", sourceMap.size);
 console.log("Total count:", [...sourceMap.values()].flat().length);
 console.log("Processed characters:", processed.size);
-console.log("Unprocessed characters:", [...sourceMap.keys()].filter((k) => !processed.has(k)).map((k) => `U+${k.toString(16).toUpperCase()}`));
+console.log(
+	"Unprocessed characters:",
+	[...sourceMap.keys()]
+		.filter((k) => !processed.has(k))
+		.map((k) => `U+${k.toString(16).toUpperCase()}`),
+);
 
-writeFileSync("data/repertoire_with_tags.json", JSON.stringify(Object.values(repertoire)));
+writeFileSync(
+	"data/repertoire_with_tags.json",
+	JSON.stringify(Object.values(repertoire)),
+);
 post("/repertoire/batch", Object.values(repertoire));

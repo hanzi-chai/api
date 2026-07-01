@@ -1,0 +1,44 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$ref": "#/definitions/Character",
+	"definitions": {
+		"Character": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"gb2312": {
+					"type": "boolean"
+				},
+				"glyphs": {
+					"type": "array",
+					"items": {}
+				},
+				"ambiguous": {
+					"type": "boolean"
+				},
+				"unicode": {
+					"type": "number"
+				},
+				"tygf": {
+					"type": "number",
+					"enum": [0, 1, 2, 3]
+				},
+				"name": {
+					"type": ["string", "null"]
+				},
+				"gf0014_id": {
+					"type": ["number", "null"]
+				}
+			},
+			"required": [
+				"ambiguous",
+				"gb2312",
+				"gf0014_id",
+				"glyphs",
+				"name",
+				"tygf",
+				"unicode"
+			]
+		}
+	}
+}

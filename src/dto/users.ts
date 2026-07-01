@@ -11,13 +11,13 @@ export enum UserState {
 
 export class User {
 	/** 用户记录ID */
-	id: string = '';
+	id: string = "";
 	/** 用户名: `/^[a-zA-Z]+([-]+[a-zA-Z0-9]+)*$/` */
-	name: string = '';
+	name: string = "";
 	/** 用户注册邮箱 */
-	email: string = '';
+	email: string = "";
 	/** 用户头像地址 */
-	avatar: string = '';
+	avatar: string = "";
 	/** 用户角色: 0: 普通; 1: 管理员 */
 	role: UserRole = 0;
 	/** 用户状态: 0: 正常; 1: 停用 */

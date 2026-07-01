@@ -9,6 +9,25 @@ CREATE TABLE IF NOT EXISTS repertoire (
 	ambiguous INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS characters (
+	unicode INTEGER PRIMARY KEY,
+	tygf INTEGER,
+	gb2312 INTEGER,
+	glyphs TEXT NOT NULL,
+	name TEXT,
+	ambiguous INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS glyphs (
+	id INTEGER PRIMARY KEY,
+	type TEXT NOT NULL,
+	operator TEXT,
+	references TEXT,
+	strokes TEXT,
+	gf0014_id INTEGER,
+	gf3001_id INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS users (
 	`id` TEXT NOT NULL DEFAULT "" PRIMARY KEY,
 	`name` TEXT NOT NULL DEFAULT "",
